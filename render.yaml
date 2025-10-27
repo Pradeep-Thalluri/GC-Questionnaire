@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: gc-questionnaire
+    env: python
+    plan: free
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    disk:
+      name: app-storage
+      mountPath: /opt/render/project/src/storage
+      sizeGB: 5
+    envVars:
+      - key: SECRET_KEY
+        sync: false
+      - key: HR_ACCESS_CODE
+        sync: false
+      - key: UPLOAD_DIR
+        value: /opt/render/project/src/storage/uploads
+      - key: DATA_DIR
+        value: /opt/render/project/src/storage/data
+      - key: DRAFTS_DIR
+        value: /opt/render/project/src/storage/drafts
+      - key: DB_PATH
+        value: /opt/render/project/src/storage/auth.db

@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visa Application Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        html { scroll-behavior: smooth; }
+        .form-section { display: block; }
+        /* Keep .active rule harmless in single-page mode */
+        .form-section.active { display: block; }
+        /* Offset anchor scroll so headings/fields aren't hidden behind sticky nav */
+        .form-section { scroll-margin-top: 120px; }
+        .step-indicator { display: flex; justify-content: center; margin-bottom: 2rem; }
+        .step {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 9999px;
+            border-width: 2px;
+            border-color: #3b82f6; /* tailwind blue-500 */
+            margin-left: 0.5rem;
+            margin-right: 0.5rem;
+            color: #1f2937; /* gray-800 default */
+        }
+        
+        .step.active { background-color: #3b82f6; color: #ffffff; }
+        .step.completed { background-color: #10b981; border-color: #10b981; color: #ffffff; }
+        /* Thicker borders for form controls for better visibility */
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="number"],
+        input[type="date"],
+        select,
+        textarea {
+            border-width: 2px !important;
+            border-color: #9ca3af !important; /* gray-400 */
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #3b82f6 !important; /* blue-500 */
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+        }
+        /* Hide legacy wizard nav buttons in single-page mode */
+        button[onclick^="prevSection"], button[onclick^="nextSection"] { display: none !important; }
+
+        /* Colorful theme */
+        body {
+            background: linear-gradient(135deg, #eef2ff 0%, #fff1f2 100%);
+        }
+        .sticky.top-0 {
+            background: linear-gradient(90deg, rgba(59,130,246,0.06), rgba(16,185,129,0.06));
+            backdrop-filter: blur(2px);
+        }
+        .form-section {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+            border: 2px solid #93c5fd;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+        }
+        [data-locked="true"] .form-section { filter: grayscale(0.2); opacity: 0.7; }
+        #sponsoring-employer { border-color: #3b82f6; background-color: #eff6ff; }
+        #personal-info { border-color: #10b981; background-color: #ecfdf5; }
+        #contact-usa { border-color: #f59e0b; background-color: #fffbeb; }
+        #contact-outside { border-color: #ef4444; background-color: #fef2f2; }
+        #education { border-color: #8b5cf6; background-color: #f5f3ff; }
+        #visa-history { border-color: #06b6d4; background-color: #ecfeff; }
+        #other-info { border-color: #f43f5e; background-color: #fff1f2; }
+        #work-experience { border-color: #84cc16; background-color: #f7fee7; }
+        #documents-checklist { border-color: #ec4899; background-color: #fdf2f8; }
+        #sponsoring-employer h2 { color: #1d4ed8; }
+        #personal-info h2 { color: #047857; }
+        #contact-usa h2 { color: #b45309; }
+        #contact-outside h2 { color: #b91c1c; }
+        #education h2 { color: #6d28d9; }
+        #visa-history h2 { color: #0e7490; }
+        #other-info h2 { color: #be123c; }
+        #work-experience h2 { color: #4d7c0f; }
+        #documents-checklist h2 { color: #be185d; }
+        .wizard-nav-hide a {
+            transition: transform .15s ease, background-color .15s ease;
+        }
+        .wizard-nav-hide a:hover {
+            background-color: rgba(59,130,246,0.12);
+            transform: translateY(-1px);
+        }
+
+        /* Ribbon chips filled with section colors */
+        .sticky a[href="#sponsoring-employer"] { background-color: #dbeafe; border-color: #3b82f6; color: #1e40af; }
+        .sticky a[href="#personal-info"] { background-color: #d1fae5; border-color: #10b981; color: #065f46; }
+        .sticky a[href="#contact-usa"] { background-color: #fef3c7; border-color: #f59e0b; color: #92400e; }
+        .sticky a[href="#contact-outside"] { background-color: #fee2e2; border-color: #ef4444; color: #991b1b; }
+        .sticky a[href="#education"] { background-color: #ede9fe; border-color: #8b5cf6; color: #4c1d95; }
+        .sticky a[href="#visa-history"] { background-color: #cffafe; border-color: #06b6d4; color: #164e63; }
+        .sticky a[href="#other-info"] { background-color: #ffe4e6; border-color: #f43f5e; color: #881337; }
+        .sticky a[href="#work-experience"] { background-color: #ecfccb; border-color: #84cc16; color: #365314; }
+        .sticky a[href="#documents-checklist"] { background-color: #fce7f3; border-color: #ec4899; color: #831843; }
+        .sticky a { box-shadow: 0 1px 0 rgba(0,0,0,0.02); transition: box-shadow .15s ease, transform .15s ease, filter .15s ease; }
+        .sticky a:hover { filter: brightness(0.97); }
+        .sticky a.active {
+            outline: 2px solid currentColor;
+            transform: translateY(-2px) scale(1.03);
+            font-weight: 600;
+        }
+        /* Colored glow per section when active */
+        .sticky a[href="#sponsoring-employer"].active { box-shadow: 0 0 0 4px rgba(59,130,246,0.38), 0 12px 24px rgba(59,130,246,0.32), 0 0 24px rgba(59,130,246,0.35), inset 0 0 18px rgba(59,130,246,0.45); }
+        .sticky a[href="#personal-info"].active { box-shadow: 0 0 0 4px rgba(16,185,129,0.38), 0 12px 24px rgba(16,185,129,0.32), 0 0 24px rgba(16,185,129,0.35), inset 0 0 18px rgba(16,185,129,0.45); }
+        .sticky a[href="#contact-usa"].active { box-shadow: 0 0 0 4px rgba(245,158,11,0.42), 0 12px 24px rgba(245,158,11,0.32), 0 0 24px rgba(245,158,11,0.38), inset 0 0 18px rgba(245,158,11,0.48); }
+        .sticky a[href="#contact-outside"].active { box-shadow: 0 0 0 4px rgba(239,68,68,0.42), 0 12px 24px rgba(239,68,68,0.32), 0 0 24px rgba(239,68,68,0.38), inset 0 0 18px rgba(239,68,68,0.48); }
+        .sticky a[href="#education"].active { box-shadow: 0 0 0 4px rgba(139,92,246,0.42), 0 12px 24px rgba(139,92,246,0.32), 0 0 24px rgba(139,92,246,0.38), inset 0 0 18px rgba(139,92,246,0.48); }
+        .sticky a[href="#visa-history"].active { box-shadow: 0 0 0 4px rgba(6,182,212,0.42), 0 12px 24px rgba(6,182,212,0.32), 0 0 24px rgba(6,182,212,0.38), inset 0 0 18px rgba(6,182,212,0.48); }
+        .sticky a[href="#other-info"].active { box-shadow: 0 0 0 4px rgba(244,63,94,0.42), 0 12px 24px rgba(244,63,94,0.32), 0 0 24px rgba(244,63,94,0.38), inset 0 0 18px rgba(244,63,94,0.48); }
+        .sticky a[href="#work-experience"].active { box-shadow: 0 0 0 4px rgba(132,204,22,0.42), 0 12px 24px rgba(132,204,22,0.32), 0 0 24px rgba(132,204,22,0.38), inset 0 0 18px rgba(132,204,22,0.48); }
+        .sticky a[href="#documents-checklist"].active { box-shadow: 0 0 0 4px rgba(236,72,153,0.42), 0 12px 24px rgba(236,72,153,0.32), 0 0 24px rgba(236,72,153,0.38), inset 0 0 18px rgba(236,72,153,0.48); }
+    </style>
+</head>
+<body class="bg-gray-50" data-locked="{{ 'true' if is_locked else 'false' }}">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <div class="bg-white rounded-lg shadow-md p-8 wizard-nav-hide">
+            <div class="flex items-center justify-between mb-2">
+                <h1 class="text-2xl font-bold text-gray-800">GC Questionnaire</h1>
+                <div class="text-sm text-gray-600">
+                    <span class="mr-3">Signed in as {{ current_user.name }}</span>
+                    <a href="{{ url_for('logout') }}" onclick="prepareLogout(); autosaveFlush();" class="text-blue-600 hover:underline">Logout</a>
+                </div>
+            </div>
+            {% if is_locked %}
+            <div class="mb-6 rounded border-2 border-yellow-400 bg-yellow-50 p-4">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <div class="font-semibold text-yellow-800">Application Submitted</div>
+                  <div class="text-sm text-yellow-700">Case Number: <span class="font-mono">{{ lock_meta.case_number or '—' }}</span></div>
+                  <div class="text-sm text-yellow-700">Status: <span class="font-semibold">{{ lock_meta.status or 'Pending with HR-Immigration' }}</span></div>
+                </div>
+                <form action="{{ url_for('new_application') }}" method="post">
+                  <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded">Start New Application</button>
+                </form>
+              </div>
+              <p class="text-xs text-yellow-700 mt-2">This questionnaire is read-only. You can start a new application to submit another questionnaire.</p>
+            </div>
+            {% elif last_submission %}
+            <div class="mb-6 rounded border border-gray-300 bg-gray-50 p-4">
+              <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-700">
+                  <div class="font-semibold">Last Submitted Case</div>
+                  <div>Case Number: <span class="font-mono">{{ last_submission.case_number or '—' }}</span></div>
+                  <div>Status: <span class="font-semibold">{{ last_submission.status or 'Pending with HR-Immigration' }}</span></div>
+                  <div>Submitted: {{ last_submission.submitted_at or '—' }}</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <a class="text-blue-600 hover:underline text-sm" href="{{ url_for('view_submission', submission_id=last_submission.id) }}">View</a>
+                  <form action="{{ url_for('new_application') }}" method="post">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-3 rounded">Start New Application</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            {% if all_submissions and all_submissions|length > 0 %}
+            <div class="mb-6 border rounded bg-white">
+              <div class="px-4 py-2 border-b font-semibold text-gray-800">Your Submitted Cases</div>
+              <div class="p-4 overflow-x-auto">
+                <table class="min-w-full text-sm">
+                  <thead>
+                    <tr class="text-left text-gray-600 border-b">
+                      <th class="py-2 pr-4">Case Number</th>
+                      <th class="py-2 pr-4">Status</th>
+                      <th class="py-2 pr-4">Submitted At (UTC)</th>
+                      <th class="py-2 pr-4">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for s in all_submissions %}
+                    <tr class="border-b align-top">
+                      <td class="py-2 pr-4 font-mono">{{ s.case_number or '—' }}</td>
+                      <td class="py-2 pr-4">{{ s.status or 'Pending with HR-Immigration' }}</td>
+                      <td class="py-2 pr-4">{{ s.submitted_at or '—' }}</td>
+                      <td class="py-2 pr-4"><a class="text-blue-600 hover:underline" href="{{ url_for('view_submission', submission_id=s.id) }}">View</a></td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {% endif %}
+            <div class="sticky top-0 z-50 bg-white border border-gray-200 rounded-md p-3 mb-8 shadow-md">
+                <div class="flex flex-wrap gap-2 justify-center text-sm">
+                    <a href="#sponsoring-employer" class="px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-blue-200">Employer</a>
+                    <a href="#personal-info" class="px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-blue-200">Personal</a>
+                    <a href="#contact-usa" class="px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-blue-200">Contact USA</a>
+                    <a href="#contact-outside" class="px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-blue-200">Contact Outside</a>
+                    <a href="#education" class="px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-blue-200">Education</a>
+                    <a href="#visa-history" class="px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-blue-200">Visa History</a>
+                    <a href="#other-info" class="px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-blue-200">Other Info</a>
+                    <a href="#work-experience" class="px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-blue-200">Work</a>
+                    <a href="#documents-checklist" class="px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-blue-200">Documents</a>
+                </div>
+            </div>
+            
+
+
+            <form id="visaForm" action="/submit" method="POST" enctype="multipart/form-data" class="space-y-10">
+                <!-- Sponsoring Employer Information Section -->
+                <div id="sponsoring-employer" class="form-section active">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">Sponsoring Employer Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-1">
+                            <label for="sponsoring_employer" class="block text-sm font-medium text-gray-700">Sponsoring Employer *</label>
+                            <select id="sponsoring_employer" name="sponsoring_employer" required
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Select your answer</option>
+                                <option>TechField LLC d/b/a Tech Consulting</option>
+                                <option>Mobile Apps Enterprises LLC d/b/a Enhance IT</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <label for="sponsoring_employer_address" class="block text-sm font-medium text-gray-700">Sponsoring Employer Address *</label>
+                            <select id="sponsoring_employer_address" name="sponsoring_employer_address" required
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Select your answer</option>
+                                <option>1785 The Exchange SE, Atlanta, GA, 30339</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end mt-6">
+                        <button type="button" onclick="nextSection('sponsoring-employer', 'personal-info')" 
+                                class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-200">
+                            Next
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Personal Information Section -->
+                <div id="personal-info" class="form-section">
+                    <h2 class="text-xl font-semibold mb-1 text-gray-700">Personal Information</h2>
+                    <p class="text-sm text-gray-500 mb-4">Please complete the details as it appears on your Passport</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="first_name" class="block text-sm font-medium text-gray-700">First (Given) Name *</label>
+                            <input type="text" id="first_name" name="first_name" required 
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="last_name" class="block text-sm font-medium text-gray-700">Last (Surname) Name *</label>
+                            <input type="text" id="last_name" name="last_name" required
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="other_name" class="block text-sm font-medium text-gray-700">Other name used (if any) *</label>
+                            <input type="text" id="other_name" name="other_name" required
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="country_citizenship" class="block text-sm font-medium text-gray-700">Country of Citizenship *</label>
+                            <select id="country_citizenship" name="country_citizenship" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Select country</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="country_birth" class="block text-sm font-medium text-gray-700">Country of Birth *</label>
+                            <select id="country_birth" name="country_birth" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Select country</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="date_of_birth" class="block text-sm font-medium text-gray-700">Date of Birth (MM/DD/YYYY) *</label>
+                            <input type="date" id="date_of_birth" name="date_of_birth" required
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="citizenships_list" class="block text-sm font-medium text-gray-700">If you are citizen of more than one country, please list all the citizenships you possess. If not applicable, please mention N/A *</label>
+                            <textarea id="citizenships_list" name="citizenships_list" rows="3" required
+                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-6">
+                        <button type="button" onclick="prevSection('personal-info', 'sponsoring-employer')" 
+                                class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-6 rounded-lg transition duration-200">
+                            Previous
+                        </button>
+                        <button type="button" onclick="nextSection('personal-info', 'contact-usa')" 
+                                class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-200">
+                            Next
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Contact Information - USA Section -->
+                <div id="contact-usa" class="form-section">
+                    <h2 class="text-xl font-semibold mb-1 text-gray-700">Contact Information</h2>
+                    <p class="text-sm text-gray-500 mb-4">Current Home Address in the USA</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label for="usa_address1" class="block text-sm font-medium text-gray-700">Address Line 1 *</label>
+                            <input type="text" id="usa_address1" name="usa_address1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="usa_address2" class="block text-sm font-medium text-gray-700">Address Line 2</label>
+                            <input type="text" id="usa_address2" name="usa_address2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="usa_state" class="block text-sm font-medium text-gray-700">State *</label>
+                            <select id="usa_state" name="usa_state" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Select state</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="usa_city" class="block text-sm font-medium text-gray-700">City *</label>
+                            <select id="usa_city" name="usa_city" required disabled class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Select city</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="usa_zip" class="block text-sm font-medium text-gray-700">Zip Code *</label>
+                            <input type="text" id="usa_zip" name="usa_zip" required inputmode="numeric" pattern="^(\d{5}|\d{9})$" maxlength="9" title="Enter 5 or 9 digits (ZIP or ZIP+4 without hyphen)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="usa_contact_number" class="block text-sm font-medium text-gray-700">Contact number *</label>
+                            <input type="tel" id="usa_contact_number" name="usa_contact_number" required inputmode="numeric" pattern="^\d{10}$" maxlength="10" title="Enter a 10-digit phone number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="usa_email" class="block text-sm font-medium text-gray-700">Email Address *</label>
+                            <input type="email" id="usa_email" name="usa_email" required pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="Enter a valid email address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-6">
+                        <button type="button" onclick="prevSection('contact-usa', 'personal-info')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-6 rounded-lg transition duration-200">Previous</button>
+                        <button type="button" onclick="nextSection('contact-usa', 'contact-outside')" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-200">Next</button>
+                    </div>
+                </div>
+
+                <!-- Contact Information - Outside USA Section -->
+                <div id="contact-outside" class="form-section">
+                    <h2 class="text-xl font-semibold mb-1 text-gray-700">Contact Information - Outside USA</h2>
+                    <p class="text-sm text-gray-500 mb-4">Home Country Address with postal code</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label for="home_address1" class="block text-sm font-medium text-gray-700">Address Line 1 *</label>
+                            <input type="text" id="home_address1" name="home_address1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="home_address2" class="block text-sm font-medium text-gray-700">Address Line 2</label>
+                            <input type="text" id="home_address2" name="home_address2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="home_country" class="block text-sm font-medium text-gray-700">Country *</label>
+                            <select id="home_country" name="home_country" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Select country</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="home_state" class="block text-sm font-medium text-gray-700">State *</label>
+                            <input type="text" id="home_state" name="home_state" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="home_city" class="block text-sm font-medium text-gray-700">City *</label>
+                            <input type="text" id="home_city" name="home_city" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="home_zip" class="block text-sm font-medium text-gray-700">Zip Code (or) Postal Code *</label>
+                            <input type="text" id="home_zip" name="home_zip" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-6">
+                        <button type="button" onclick="prevSection('contact-outside', 'contact-usa')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-6 rounded-lg transition duration-200">Previous</button>
+                        <button type="button" onclick="nextSection('contact-outside', 'education')" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-200">Next</button>
+                    </div>
+                </div>
+
+                <!-- Education Details (dynamic) -->
+                <div id="education" class="form-section">
+                    <h2 class="text-xl font-semibold mb-1 text-gray-700">Education Details</h2>
+                    <p class="text-sm text-gray-500 mb-4">Enter all education details from your highest qualification downward. Click "+ Add another education" to add more if needed.</p>
+                    <div id="eduBlocks" class="space-y-8">
+                        <div class="edu-block border rounded-md p-4" data-index="1">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-semibold text-gray-700">Education - <span class="eb-index">1</span></h3>
+                                <button type="button" class="remove-edu hidden text-red-600 text-sm hover:underline">Remove</button>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700" for="eb1_university">Complete University Name (No short forms) *</label>
+                                    <input class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="eb1_university" name="edu[1][university]" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="eb1_degree">Degree Received (Bachelor's / Master's / PhD) *</label>
+                                    <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="eb1_degree" name="edu[1][degree]" required>
+                                        <option value="">Select your answer</option>
+                                        <option>Bachelor's</option>
+                                        <option>Master's</option>
+                                        <option>PhD</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="eb1_major">Major Field of Study (No short forms) *</label>
+                                    <input class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="eb1_major" name="edu[1][major]" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="eb1_date">Date Conferred *</label>
+                                    <input type="date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="eb1_date" name="edu[1][date]" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center justify-between">
+                        <button type="button" id="addEduBlock" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded">+ Add another education</button>
+                        <div>
+                            <button type="button" onclick="prevSection('education', 'contact-outside')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-6 rounded-lg transition duration-200">Previous</button>
+                            <button type="button" onclick="nextSection('education', 'visa-history')" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-200">Next</button>
+                        </div>
+                    </div>
+                </div>
+
+                
+
+                <!-- U.S. Visa History -->
+                <div id="visa-history" class="form-section">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">U.S. Visa History</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label for="current_imm_status" class="block text-sm font-medium text-gray-700">Current Immigration Status</label>
+                            <select id="current_imm_status" name="current_imm_status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Select your answer</option>
+                                <option>H-1B</option>
+                                <option>TN</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="i94_number" class="block text-sm font-medium text-gray-700">I-94 number *</label>
+                            <input type="text" id="i94_number" name="i94_number" maxlength="11" inputmode="numeric" pattern="^\d{11}$" title="Enter exactly 11 digits as shown on your I-94" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Enter 11 digits">
+                        </div>
+                        <div>
+                            <label for="status_expiry" class="block text-sm font-medium text-gray-700">Immigration Status Expiry Date (MM/DD/YYYY) *</label>
+                            <input type="date" id="status_expiry" name="status_expiry" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div class="md:col-span-2" id="j1_status_wrap">
+                            <fieldset>
+                                <legend class="block text-sm font-medium text-gray-700 mb-1">Have you ever been on J-1 status? *</legend>
+                                <div class="flex items-center space-x-6">
+                                    <label class="inline-flex items-center"><input type="radio" name="j1_status" value="Yes" required class="mr-2">Yes</label>
+                                    <label class="inline-flex items-center"><input type="radio" name="j1_status" value="No" class="mr-2">No</label>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="md:col-span-2" id="two_year_req_wrap">
+                            <fieldset>
+                                <legend class="block text-sm font-medium text-gray-700 mb-1">Were/are you subject to 2 year home residency requirement? *</legend>
+                                <div class="flex items-center space-x-6">
+                                    <label class="inline-flex items-center"><input type="radio" name="two_year_req" value="Yes" required class="mr-2">Yes</label>
+                                    <label class="inline-flex items-center"><input type="radio" name="two_year_req" value="No" class="mr-2">No</label>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="md:col-span-2" id="fulfilled_req_wrap">
+                            <fieldset>
+                                <legend class="block text-sm font-medium text-gray-700 mb-1">Did you fulfill this requirement? *</legend>
+                                <div class="flex items-center space-x-6">
+                                    <label class="inline-flex items-center"><input type="radio" name="fulfilled_req" value="Yes" required class="mr-2">Yes</label>
+                                    <label class="inline-flex items-center"><input type="radio" name="fulfilled_req" value="No" class="mr-2">No</label>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="md:col-span-2" id="h1b_time_wrap">
+                            <label for="h1b_time" class="block text-sm font-medium text-gray-700">Time spent USA in H-1B status *</label>
+                            <textarea id="h1b_time" name="h1b_time" rows="3" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="List all periods of stay; if not on H-1B, mention N/A"></textarea>
+                        </div>
+                        <div class="md:col-span-2">
+                            <fieldset>
+                                <legend class="block text-sm font-medium text-gray-700 mb-1">Have you ever applied for I-140? *</legend>
+                                <div class="flex items-center space-x-6">
+                                    <label class="inline-flex items-center"><input type="radio" name="applied_i140" value="Yes" required class="mr-2">Yes</label>
+                                    <label class="inline-flex items-center"><input type="radio" name="applied_i140" value="No" class="mr-2">No</label>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-6">
+                        <button type="button" onclick="prevSection('visa-history', 'education')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-6 rounded-lg transition duration-200">Previous</button>
+                        <button type="button" onclick="nextSection('visa-history', 'other-info')" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-200">Next</button>
+                    </div>
+                </div>
+
+                <!-- Other Information -->
+                <div id="other-info" class="form-section">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">Other Information</h2>
+                    <div class="space-y-6">
+                        <fieldset>
+                            <legend class="block text-sm font-medium text-gray-700 mb-1">Have you ever been arrested, cited, charged, indicted, fined, or imprisoned for breaking or violating any ordinances, excluding any traffic violations? *</legend>
+                            <div class="flex items-center space-x-6">
+                                <label class="inline-flex items-center"><input type="radio" name="arrested" value="Yes" required class="mr-2">Yes</label>
+                                <label class="inline-flex items-center"><input type="radio" name="arrested" value="No" class="mr-2">No</label>
+                            </div>
+                        </fieldset>
+                        <div id="incident_explanation_wrap">
+                            <label for="incident_explanation" class="block text-sm font-medium text-gray-700">If yes, please explain the nature of incident and the final disposition. *</label>
+                            <textarea id="incident_explanation" name="incident_explanation" rows="4" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-6">
+                        <button type="button" onclick="prevSection('other-info', 'visa-history')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-6 rounded-lg transition duration-200">Previous</button>
+                        <button type="button" onclick="nextSection('other-info', 'work-experience')" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-200">Next</button>
+                    </div>
+                </div>
+
+                <!-- Work Experience (repeatable) -->
+                <div id="work-experience" class="form-section">
+                    <h2 class="text-xl font-semibold mb-1 text-gray-700">Work Experience</h2>
+                    <p class="text-sm text-gray-500 mb-4">Please list your current position first. Use + to add more.</p>
+                    <div id="workBlocks" class="space-y-8">
+                        <div class="work-block border rounded-md p-4" data-index="1">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-semibold text-gray-700">Work Experience - <span class="wb-index">1</span></h3>
+                                <button type="button" class="remove-wb hidden text-red-600 text-sm hover:underline">Remove</button>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700" for="wb1_employer">Name of the Employer *</label>
+                                    <input class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="wb1_employer" name="wb[1][employer]" required>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700" for="wb1_addr1">Address Line 1 *</label>
+                                    <input class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="wb1_addr1" name="wb[1][addr1]" required>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700" for="wb1_addr2">Address Line 2</label>
+                                    <input class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="wb1_addr2" name="wb[1][addr2]">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="wb1_country">Country *</label>
+                                    <select class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="wb1_country" name="wb[1][country]" required>
+                                        <option value="">Select country</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="wb1_state">State *</label>
+                                    <input class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="wb1_state" name="wb[1][state]" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="wb1_city">City *</label>
+                                    <input class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="wb1_city" name="wb[1][city]" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="wb1_zip">Zip Code *</label>
+                                    <input type="number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="wb1_zip" name="wb[1][zip]" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="wb1_title">Job Title *</label>
+                                    <input class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="wb1_title" name="wb[1][title]" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="wb1_start">Start Date of Employment (MM/DD/YYYY) *</label>
+                                    <input type="date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="wb1_start" name="wb[1][start]" required>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <fieldset>
+                                        <legend class="block text-sm font-medium text-gray-700 mb-1">Is this Full Time Employment? (35-40 hours is considered full time) *</legend>
+                                        <div class="flex items-center space-x-6">
+                                            <label class="inline-flex items-center"><input type="radio" name="wb[1][fulltime]" value="Yes" required class="mr-2">Yes</label>
+                                            <label class="inline-flex items-center"><input type="radio" name="wb[1][fulltime]" value="No" class="mr-2">No</label>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="wb1_end">End Date of Employment (MM/DD/YYYY) *</label>
+                                    <input type="text" placeholder="MM/DD/YYYY or TILL DATE" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="wb1_end" name="wb[1][end]" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="wb1_manager">Manager's Name *</label>
+                                    <input class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="wb1_manager" name="wb[1][manager]" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="wb1_phone">Employer Phone number *</label>
+                                    <input type="tel" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="wb1_phone" name="wb[1][phone]" required>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700" for="wb1_duties">Job Duties *</label>
+                                    <textarea rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="wb1_duties" name="wb[1][duties]" required></textarea>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700" for="wb1_skills">Skills Required to Perform the above Job duties *</label>
+                                    <textarea rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" id="wb1_skills" name="wb[1][skills]" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center justify-between">
+                        <button type="button" id="addWorkBlock" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded">+ Add another employment</button>
+                        <div>
+                            <button type="button" onclick="prevSection('work-experience', 'other-info')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-6 rounded-lg transition duration-200">Previous</button>
+                            <button type="button" onclick="nextSection('work-experience', 'documents-checklist')" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-200">Next</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents Checklist -->
+                <div id="documents-checklist" class="form-section">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">Checklist of Documents</h2>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700" for="chk_resume">Current/Updated Resume</label>
+                            <p class="text-xs text-gray-500">Upload up to 5 PDF files (max 10MB each)</p>
+                            <input type="file" id="chk_resume" name="chk_resume" class="pdf-upload mt-1 block w-full text-sm text-gray-500" accept=".pdf" multiple>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700" for="chk_edu_docs">Educational Documents</label>
+                            <p class="text-xs text-gray-500">Degrees, transcripts, etc. Upload up to 5 PDF files (max 10MB each)</p>
+                            <input type="file" id="chk_edu_docs" name="chk_edu_docs" class="pdf-upload mt-1 block w-full text-sm text-gray-500" accept=".pdf" multiple>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700" for="chk_i94">I-94 (Arrival and Departure record)</label>
+                            <p class="text-xs text-gray-500">Upload up to 5 PDF files (max 10MB each)</p>
+                            <input type="file" id="chk_i94" name="chk_i94" class="pdf-upload mt-1 block w-full text-sm text-gray-500" accept=".pdf" multiple>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700" for="chk_passport">Current Passport</label>
+                            <p class="text-xs text-gray-500">Photo page and any visa pages. Upload up to 5 PDF files (max 10MB each)</p>
+                            <input type="file" id="chk_passport" name="chk_passport" class="pdf-upload mt-1 block w-full text-sm text-gray-500" accept=".pdf" multiple>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700" for="chk_us_visas">U.S. Visas</label>
+                            <p class="text-xs text-gray-500">Upload up to 5 PDF files (max 10MB each)</p>
+                            <input type="file" id="chk_us_visas" name="chk_us_visas" class="pdf-upload mt-1 block w-full text-sm text-gray-500" accept=".pdf" multiple>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700" for="chk_i797">Forms I-797, I-129S</label>
+                            <p class="text-xs text-gray-500">Upload up to 5 PDF files (max 10MB each)</p>
+                            <input type="file" id="chk_i797" name="chk_i797" class="pdf-upload mt-1 block w-full text-sm text-gray-500" accept=".pdf" multiple>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700" for="chk_ds2019">Form DS-2019</label>
+                            <p class="text-xs text-gray-500">Upload up to 5 PDF files (max 10MB each)</p>
+                            <input type="file" id="chk_ds2019" name="chk_ds2019" class="pdf-upload mt-1 block w-full text-sm text-gray-500" accept=".pdf" multiple>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700" for="chk_i612">Form I-612</label>
+                            <p class="text-xs text-gray-500">Upload up to 5 PDF files (max 10MB each)</p>
+                            <input type="file" id="chk_i612" name="chk_i612" class="pdf-upload mt-1 block w-full text-sm text-gray-500" accept=".pdf" multiple>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700" for="chk_ead">Employment Authorization</label>
+                            <p class="text-xs text-gray-500">Upload up to 5 PDF files (max 10MB each)</p>
+                            <input type="file" id="chk_ead" name="chk_ead" class="pdf-upload mt-1 block w-full text-sm text-gray-500" accept=".pdf" multiple>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700" for="chk_paystubs">Paystubs</label>
+                            <p class="text-xs text-gray-500">Recent 3–6 months. Upload up to 5 PDF files (max 10MB each)</p>
+                            <input type="file" id="chk_paystubs" name="chk_paystubs" class="pdf-upload mt-1 block w-full text-sm text-gray-500" accept=".pdf" multiple>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700" for="chk_i20">Forms I-20</label>
+                            <p class="text-xs text-gray-500">Upload up to 5 PDF files (max 10MB each)</p>
+                            <input type="file" id="chk_i20" name="chk_i20" class="pdf-upload mt-1 block w-full text-sm text-gray-500" accept=".pdf" multiple>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700" for="chk_translations">Translations</label>
+                            <p class="text-xs text-gray-500">Certified translations where applicable. Upload up to 5 PDF files (max 10MB each)</p>
+                            <input type="file" id="chk_translations" name="chk_translations" class="pdf-upload mt-1 block w-full text-sm text-gray-500" accept=".pdf" multiple>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-6">
+                <button type="button" onclick="prevSection('documents-checklist','work-experience')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded">Previous</button>
+                {% if not is_locked %}
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">Submit Application</button>
+                {% else %}
+                <button type="button" disabled class="bg-gray-300 text-gray-500 font-semibold py-2 px-4 rounded cursor-not-allowed">Submitted</button>
+                {% endif %}
+            </div>
+        </div>
+                </div>
+                
+            </form>
+        </div>
+    </div>
+
+    <script id="draft-data" type="application/json">{{ draft_fields|tojson|safe }}</script>
+    <script>
+        const DRAFT_FIELDS = (()=>{ try { return JSON.parse(document.getElementById('draft-data').textContent||'{}'); } catch(e){ return {}; } })();
+        window.__suppressAutosave = false;
+        window.IS_LOCKED = (document.body.getAttribute('data-locked') === 'true');
+        const cssEsc = (s) => (window.CSS && typeof CSS.escape === 'function') ? CSS.escape(s) : String(s).replace(/[\0-\x1F\x7F]|[\s"'\\:#.?+*\[\]\(\)~>\|^$]/g, '\\$&');
+        function debounce(fn, delay=600){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), delay); }; }
+
+        function collectFields(){
+            const form = document.getElementById('visaForm');
+            const data = {};
+            if (!form) return data;
+            form.querySelectorAll('input, select, textarea').forEach(el=>{
+                if (!el.name) return;
+                if ((el.type==='radio'||el.type==='checkbox') && !el.checked) return;
+                data[el.name] = el.value;
+            });
+            return data;
+        }
+
+        const autosavePostDebounced = debounce(async function(){
+            if (window.__suppressAutosave || window.IS_LOCKED) return;
+            try {
+                await fetch('/autosave', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ fields: collectFields() })
+                });
+            } catch(e) {}
+        }, 800);
+
+        function autosaveFlush() {
+            try {
+                const data = JSON.stringify({ fields: collectFields() });
+                const blob = new Blob([data], { type: 'application/json' });
+                if (navigator.sendBeacon) {
+                    navigator.sendBeacon('/autosave', blob);
+                } else {
+                    fetch('/autosave', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        keepalive: true,
+                        body: data
+                    });
+                }
+            } catch(e) {}
+        }
+
+        function prepareLogout() {
+            try {
+                const snapshot = collectFields();
+                sessionStorage.setItem('draftSnapshot', JSON.stringify(snapshot));
+            } catch(e) {}
+        }
+
+        function ensureWorkBlocks(count){
+            const container = document.getElementById('workBlocks');
+            if (!container) return;
+            const have = container.querySelectorAll('.work-block').length;
+            for(let i=have+1;i<=count;i++){ const b = createWorkBlock(i); if (b){ const btn=b.querySelector('.remove-wb'); btn?.addEventListener('click',()=>{b.remove(); renumberWorkBlocks(); autosavePostDebounced();}); container.appendChild(b);} }
+            renumberWorkBlocks();
+        }
+
+        async function autosaveLoad(){
+            try {
+                const res = await fetch('/autosave', { credentials: 'same-origin' });
+                const json = await res.json();
+                const fields = json.fields || {};
+                hydrateFrom(fields);
+                const docs = json.documents || {};
+                if (docs && typeof docs === 'object') {
+                    DRAFT_DOCS = docs;
+                    // Render each key where an input exists
+                    Object.keys(docs).forEach(key => {
+                        const el = document.getElementById(key) || document.querySelector(`[name="${cssEsc(key)}"]`);
+                        if (el) renderUploadedDocsForKey(el, key);
+                    });
+                }
+            } catch(e) {
+                // ignore
+            }
+        }
+
+        async function autosaveLoadDocs(){
+            try {
+                const res = await fetch('/autosave', { credentials: 'same-origin' });
+                const json = await res.json();
+                const docs = json.documents || {};
+                if (docs && typeof docs === 'object') {
+                    DRAFT_DOCS = docs;
+                    Object.keys(docs).forEach(key => {
+                        const el = document.getElementById(key) || document.querySelector(`[name="${cssEsc(key)}"]`);
+                        if (el) renderUploadedDocsForKey(el, key);
+                    });
+                }
+            } catch(e) {}
+        }
+
+        
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show the selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Update step indicators
+            updateStepIndicators(sectionId);
+            // Update active chip
+            highlightActiveChip(sectionId);
+        }
+        
+        function nextSection(currentSectionId, nextSectionId) {
+            // Prefer native constraint validation API first
+            const currentSection = document.getElementById(currentSectionId);
+            const controls = currentSection.querySelectorAll('input, select, textarea');
+            let htmlValid = true;
+            for (const el of controls) {
+                if (typeof el.reportValidity === 'function') {
+                    if (!el.reportValidity()) { htmlValid = false; break; }
+                }
+            }
+            if (!htmlValid) return;
+
+            // Additional check for radio groups marked required
+            let isValid = true;
+            const requiredFields = currentSection.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                if (field.type === 'radio') {
+                    const name = field.name;
+                    const group = currentSection.querySelectorAll(`input[type="radio"][name="${CSS.escape(name)}"]`);
+                    const anyChecked = Array.from(group).some(r => r.checked);
+                    if (!anyChecked) {
+                        isValid = false;
+                        group.forEach(r => r.classList.add('ring-2', 'ring-red-500'));
+                    } else {
+                        group.forEach(r => r.classList.remove('ring-2', 'ring-red-500'));
+                    }
+                }
+            });
+            if (!isValid) {
+                alert('Please fill in all required fields before proceeding.');
+                return;
+            }
+            showSection(nextSectionId);
+        }
+        
+        function prevSection(currentSectionId, prevSectionId) {
+            showSection(prevSectionId);
+        }
+        
+        function updateStepIndicators(activeSectionId) {
+            const steps = {
+                'personal-info': 1,
+                'trip-details': 2,
+                'documents': 3
+            };
+            
+            const activeStep = steps[activeSectionId];
+            // If step indicators are not present in the DOM, no-op
+            if (!document.getElementById('step1-indicator')) {
+                return;
+            }
+            
+            // Update step indicators
+            for (let i = 1; i <= 3; i++) {
+                const stepElement = document.getElementById(`step${i}-indicator`);
+                stepElement.classList.remove('active', 'completed');
+                
+                if (i < activeStep) {
+                    stepElement.classList.add('completed');
+                } else if (i === activeStep) {
+                    stepElement.classList.add('active');
+                }
+            }
+        }
+        
+        // File input validations
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+        const MAX_ADDITIONAL_FILES = 5;
+
+        function isPdfFile(file) {
+            const nameOk = file.name.toLowerCase().endsWith('.pdf');
+            const typeOk = (file.type || '').toLowerCase() === 'application/pdf';
+            return nameOk || typeOk; // accept if either indicates PDF
+        }
+
+        const fileStore = new WeakMap(); // input -> File[] accumulated (used for UI only)
+        let DRAFT_DOCS = {}; // key -> [filenames]
+
+        function syncInputFilesFromStore(input) {
+            const dt = new DataTransfer();
+            const files = fileStore.get(input) || [];
+            files.forEach(f => dt.items.add(f));
+            input.files = dt.files;
+        }
+
+        function renderFileListForInput(input) {
+            // Find or create a container just after input
+            let list = input.nextElementSibling;
+            if (!list || !list.classList || !list.classList.contains('selected-file-list')) {
+                list = document.createElement('ol');
+                list.className = 'selected-file-list list-decimal ml-6 mt-1 text-xs text-gray-700';
+                input.parentNode.insertBefore(list, input.nextSibling);
+            }
+            list.innerHTML = '';
+            const files = fileStore.get(input) || [];
+            files.forEach((f, idx) => {
+                const li = document.createElement('li');
+                const wrap = document.createElement('div');
+                wrap.className = 'flex items-center gap-2';
+                const name = document.createElement('span');
+                name.textContent = f.name;
+                const rm = document.createElement('button');
+                rm.type = 'button';
+                rm.className = 'text-red-600 hover:underline';
+                rm.textContent = 'Remove';
+                rm.addEventListener('click', () => {
+                    const arr = fileStore.get(input) || [];
+                    arr.splice(idx, 1);
+                    fileStore.set(input, arr);
+                    syncInputFilesFromStore(input);
+                    renderFileListForInput(input);
+                });
+                wrap.appendChild(name);
+                wrap.appendChild(rm);
+                li.appendChild(wrap);
+                list.appendChild(li);
+            });
+        }
+
+        function renderUploadedDocsForKey(input, key) {
+            const existing = DRAFT_DOCS[key] || [];
+            let list = input.parentNode.querySelector('.uploaded-file-list');
+            if (!list) {
+                list = document.createElement('ol');
+                list.className = 'uploaded-file-list list-decimal ml-6 mt-1 text-xs text-gray-700';
+                input.parentNode.appendChild(list);
+            }
+            list.innerHTML = '';
+            existing.forEach((fname) => {
+                const li = document.createElement('li');
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-2';
+                const link = document.createElement('a');
+                link.href = `/uploads/${encodeURIComponent(fname)}`;
+                link.target = '_blank';
+                link.className = 'text-blue-700 hover:underline';
+                link.textContent = fname.replace(/^.*?_([^_]+\.pdf)$/i, '$1');
+                const rm = document.createElement('button');
+                rm.type = 'button';
+                rm.className = 'text-red-600 hover:underline';
+                rm.textContent = 'Remove';
+                rm.addEventListener('click', async () => {
+                    try {
+                        const res = await fetch(`/autosave_uploads?key=${encodeURIComponent(key)}&filename=${encodeURIComponent(fname)}`, { method: 'DELETE', credentials: 'same-origin' });
+                        const json = await res.json();
+                        if (json && json.ok) {
+                            DRAFT_DOCS[key] = json.files || [];
+                            renderUploadedDocsForKey(input, key);
+                        }
+                    } catch(e) {}
+                });
+                row.appendChild(link);
+                row.appendChild(rm);
+                li.appendChild(row);
+                list.appendChild(li);
+            });
+        }
+
+        async function uploadDocsForInput(input, key, files) {
+            const fd = new FormData();
+            Array.from(files || []).forEach(f => fd.append('files', f));
+            const res = await fetch(`/autosave_uploads?key=${encodeURIComponent(key)}`, {
+                method: 'POST',
+                body: fd,
+                credentials: 'same-origin'
+            });
+            const json = await res.json();
+            if (json && json.ok) {
+                DRAFT_DOCS[key] = json.files || [];
+                renderUploadedDocsForKey(input, key);
+            }
+        }
+
+        function bindPdfUploadValidation() {
+            document.querySelectorAll('input.pdf-upload[type="file"]').forEach(input => {
+                fileStore.set(input, fileStore.get(input) || []);
+                input.addEventListener('change', async function() {
+                    const prev = fileStore.get(this) || [];
+                    const incoming = Array.from(this.files || []);
+                    // Validate incoming first
+                    for (const f of incoming) {
+                        if (!isPdfFile(f)) {
+                            alert('Only PDF files are allowed.');
+                            this.value = '';
+                            return;
+                        }
+                        if (f.size > MAX_FILE_SIZE) {
+                            alert('Each file must be under 10MB.');
+                            this.value = '';
+                            return;
+                        }
+                    }
+                    if ((prev.length + incoming.length) > MAX_ADDITIONAL_FILES) {
+                        alert('You can upload a maximum of 5 files for this document.');
+                        this.value = '';
+                        return;
+                    }
+                    try {
+                        const key = this.name || this.id;
+                        await uploadDocsForInput(this, key, incoming);
+                    } catch(e) {}
+                    this.value = '';
+                });
+            });
+        }
+
+        const passportInput = document.getElementById('passport_scan');
+        if (passportInput) {
+            passportInput.addEventListener('change', function() {
+                const f = this.files && this.files[0];
+                if (!f) return;
+                if (!isPdfFile(f)) {
+                    alert('Passport scan must be a PDF file.');
+                    this.value = '';
+                    return;
+                }
+                if (f.size > MAX_FILE_SIZE) {
+                    alert('Passport scan exceeds 10MB.');
+                    this.value = '';
+                }
+            });
+        }
+
+        const additionalInput = document.getElementById('additional_docs');
+        if (additionalInput) {
+            additionalInput.addEventListener('change', function() {
+                const files = Array.from(this.files || []);
+                if (files.length > MAX_ADDITIONAL_FILES) {
+                    alert('You can upload a maximum of 5 additional files.');
+                    this.value = '';
+                    return;
+                }
+                for (const f of files) {
+                    if (!isPdfFile(f)) {
+                        alert('All additional documents must be PDF files.');
+                        this.value = '';
+                        return;
+                    }
+                    if (f.size > MAX_FILE_SIZE) {
+                        alert('Each additional document must be under 10MB.');
+                        this.value = '';
+                        return;
+                    }
+                }
+            });
+        }
+
+        // Work Experience dynamic blocks
+        function createWorkBlock(index) {
+            const first = document.querySelector('#workBlocks .work-block');
+            const clone = first.cloneNode(true);
+            clone.setAttribute('data-index', index);
+            clone.querySelector('.wb-index').textContent = index;
+            // Update all ids and names inside
+            clone.querySelectorAll('[id]').forEach(el => {
+                el.id = el.id.replace(/\d+/, String(index));
+            });
+            clone.querySelectorAll('[name]').forEach(el => {
+                el.name = el.name.replace(/\[\d+\]/, `[${index}]`);
+                if (el.type === 'radio') {
+                    // Ensure radio groups are unique per block
+                    const base = el.name.replace(/\[.*?\]$/, '');
+                    // name pattern already includes index in wb[index][field]
+                }
+            });
+            // Clear values
+            clone.querySelectorAll('input, textarea, select').forEach(el => {
+                if (el.type === 'radio' || el.type === 'checkbox') {
+                    el.checked = false;
+                } else {
+                    el.value = '';
+                }
+            });
+            // Populate country select in this block
+            const countrySel = clone.querySelector(`select[name="wb[${index}][country]"]`);
+            if (countrySel) {
+                // Clear existing options except placeholder
+                countrySel.options.length = 1;
+                COUNTRY_LIST.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    opt.textContent = name;
+                    countrySel.appendChild(opt);
+                });
+            }
+            // Show remove on cloned blocks
+            const rm = clone.querySelector('.remove-wb');
+            rm?.classList.remove('hidden');
+            return clone;
+        }
+
+        function renumberWorkBlocks() {
+            const container = document.getElementById('workBlocks');
+            const blocks = Array.from(container.querySelectorAll('.work-block'));
+            blocks.forEach((blk, idx) => {
+                const i = idx + 1;
+                blk.setAttribute('data-index', i);
+                const titleSpan = blk.querySelector('.wb-index');
+                if (titleSpan) titleSpan.textContent = i;
+                // Update names and ids
+                blk.querySelectorAll('[name^="wb["]').forEach(el => {
+                    el.name = el.name.replace(/wb\[\d+\]/, `wb[${i}]`);
+                });
+                blk.querySelectorAll('[id^="wb"]').forEach(el => {
+                    el.id = el.id.replace(/\d+/, String(i));
+                });
+                // Required handling: first block required, others optional
+                const reqFields = [
+                    `wb[${i}][employer]`,`wb[${i}][addr1]`,`wb[${i}][state]`,`wb[${i}][city]`,`wb[${i}][zip]`,
+                    `wb[${i}][title]`,`wb[${i}][start]`,`wb[${i}][end]`,`wb[${i}][manager]`,`wb[${i}][phone]`,
+                    `wb[${i}][duties]`,`wb[${i}][skills]`,`wb[${i}][country]`
+                ];
+                const removeBtn = blk.querySelector('.remove-wb');
+                if (i === 1) {
+                    blk.querySelectorAll('input, textarea, select').forEach(el => {
+                        if (el.name && (reqFields.includes(el.name) || el.name === `wb[${i}][fulltime]`)) {
+                            el.setAttribute('required','');
+                        }
+                    });
+                    removeBtn?.classList.add('hidden');
+                } else {
+                    blk.querySelectorAll('input, textarea, select').forEach(el => el.removeAttribute('required'));
+                    removeBtn?.classList.remove('hidden');
+                }
+            });
+        }
+
+        function initWorkBlocks() {
+            const container = document.getElementById('workBlocks');
+            if (!container) return;
+            const addBtn = document.getElementById('addWorkBlock');
+            addBtn?.addEventListener('click', () => {
+                const count = container.querySelectorAll('.work-block').length;
+                const next = count + 1;
+                const block = createWorkBlock(next);
+                // Wire remove
+                const btn = block.querySelector('.remove-wb');
+                btn?.addEventListener('click', () => { block.remove(); renumberWorkBlocks(); });
+                container.appendChild(block);
+                renumberWorkBlocks();
+            });
+            // Wire remove on template (hidden for first but safe)
+            const firstRemove = container.querySelector('.work-block .remove-wb');
+            firstRemove?.addEventListener('click', (e) => {
+                const blk = e.target.closest('.work-block');
+                blk?.remove();
+                renumberWorkBlocks();
+            });
+            // Ensure correct initial state
+            renumberWorkBlocks();
+        }
+
+        // Education dynamic blocks (first required, others optional)
+        function createEduBlock(index) {
+            const first = document.querySelector('#eduBlocks .edu-block');
+            if (!first) return null;
+            const clone = first.cloneNode(true);
+            clone.setAttribute('data-index', index);
+            const titleSpan = clone.querySelector('.eb-index');
+            if (titleSpan) titleSpan.textContent = index;
+            // Update ids/names
+            clone.querySelectorAll('[id]').forEach(el => {
+                el.id = el.id.replace(/\d+/, String(index));
+            });
+            clone.querySelectorAll('[name]').forEach(el => {
+                el.name = el.name.replace(/\[\d+\]/, `[${index}]`);
+            });
+            // Clear values and remove required from optional blocks
+            clone.querySelectorAll('input, select, textarea').forEach(el => {
+                if (el.tagName === 'SELECT') {
+                    el.selectedIndex = 0;
+                } else {
+                    el.value = '';
+                }
+                el.removeAttribute('required');
+            });
+            // Ensure thicker border on Major field in cloned blocks as well
+            const major = clone.querySelector(`input[name="edu[${index}][major]"]`);
+            if (major) major.classList.add('border-2');
+            // Ensure thicker border on University field in cloned blocks as well
+            const university = clone.querySelector(`input[name="edu[${index}][university]"]`);
+            if (university) university.classList.add('border-2');
+            return clone;
+        }
+
+        function renumberEduBlocks() {
+            const container = document.getElementById('eduBlocks');
+            const blocks = Array.from(container.querySelectorAll('.edu-block'));
+            blocks.forEach((blk, idx) => {
+                const i = idx + 1;
+                blk.setAttribute('data-index', i);
+                const titleSpan = blk.querySelector('.eb-index');
+                if (titleSpan) titleSpan.textContent = i;
+                blk.querySelectorAll('[name^="edu["]').forEach(el => {
+                    el.name = el.name.replace(/edu\[\d+\]/, `edu[${i}]`);
+                });
+                blk.querySelectorAll('[id^="eb"]').forEach(el => {
+                    el.id = el.id.replace(/\d+/, String(i));
+                });
+                const removeBtn = blk.querySelector('.remove-edu');
+                if (i === 1) {
+                    // First block required and non-removable
+                    const reqNames = [
+                        `edu[${i}][university]`,
+                        `edu[${i}][degree]`,
+                        `edu[${i}][major]`,
+                        `edu[${i}][date]`
+                    ];
+                    blk.querySelectorAll('input, select, textarea').forEach(el => {
+                        if (reqNames.includes(el.name)) el.setAttribute('required', '');
+                    });
+                    removeBtn?.classList.add('hidden');
+                } else {
+                    // Subsequent optional and removable
+                    blk.querySelectorAll('input, select, textarea').forEach(el => el.removeAttribute('required'));
+                    removeBtn?.classList.remove('hidden');
+                }
+            });
+        }
+
+        function hydrateFrom(fields) {
+            const form = document.getElementById('visaForm');
+            if (!form || !fields) return;
+            let maxWb = 1;
+            let maxEdu = 1;
+            Object.keys(fields).forEach(k => {
+                let m = k.match(/^wb\[(\d+)\]\[/);
+                if (m) maxWb = Math.max(maxWb, parseInt(m[1], 10));
+                m = k.match(/^edu\[(\d+)\]\[/);
+                if (m) maxEdu = Math.max(maxEdu, parseInt(m[1], 10));
+            });
+            try { ensureWorkBlocks(maxWb); } catch(e) {}
+            try {
+                const eduContainer = document.getElementById('eduBlocks');
+                if (eduContainer) {
+                    let have = eduContainer.querySelectorAll('.edu-block').length;
+                    for (let i = have + 1; i <= maxEdu; i++) {
+                        const b = createEduBlock(i);
+                        if (b) {
+                            const btn = b.querySelector('.remove-edu');
+                            btn?.addEventListener('click', () => { b.remove(); renumberEduBlocks(); });
+                            eduContainer.appendChild(b);
+                        }
+                    }
+                    renumberEduBlocks();
+                }
+            } catch(e) {}
+            const esc = (n) => (window.CSS && CSS.escape) ? CSS.escape(n) : n.replace(/([\[\].:+>~#])/g, '\\$1');
+            const stateVal = fields['usa_state'];
+            if (stateVal != null) {
+                const stateSel = form.querySelector(`[name="usa_state"]`);
+                if (stateSel) stateSel.value = stateVal;
+            }
+            Object.entries(fields).forEach(([name, value]) => {
+                const nodes = form.querySelectorAll(`[name="${esc(name)}"]`);
+                if (!nodes || nodes.length === 0) return;
+                const first = nodes[0];
+                if (first.type === 'radio') {
+                    nodes.forEach(el => { el.checked = (String(el.value) === String(value)); });
+                } else if (first.type === 'checkbox') {
+                    nodes.forEach(el => { el.checked = !!value && (value === 'on' || String(el.value) === String(value)); });
+                } else {
+                    nodes.forEach(el => { el.value = value; });
+                }
+            });
+            try { applyVisaHistoryBranching(); } catch(e) {}
+            try { applyOtherInfoBranching(); } catch(e) {}
+            if (stateVal != null) {
+                try {
+                    onStateChange().then(() => {
+                        const cityVal = fields['usa_city'];
+                        if (cityVal != null) {
+                            const citySel = form.querySelector('[name="usa_city"]');
+                            if (citySel) citySel.value = cityVal;
+                        }
+                    });
+                } catch(e) {}
+            }
+        }
+
+        function initEduBlocks() {
+            const container = document.getElementById('eduBlocks');
+            if (!container) return;
+            const addBtn = document.getElementById('addEduBlock');
+            addBtn?.addEventListener('click', () => {
+                const count = container.querySelectorAll('.edu-block').length;
+                const next = count + 1;
+                const block = createEduBlock(next);
+                if (block) {
+                    // Attach remove handler
+                    const btn = block.querySelector('.remove-edu');
+                    btn?.addEventListener('click', () => {
+                        block.remove();
+                        renumberEduBlocks();
+                    });
+                    container.appendChild(block);
+                    renumberEduBlocks();
+                }
+            });
+            // Wire remove handler for template (hidden for first but for safety)
+            const firstRemove = container.querySelector('.edu-block .remove-edu');
+            firstRemove?.addEventListener('click', (e) => {
+                const blk = (e.target).closest('.edu-block');
+                blk?.remove();
+                renumberEduBlocks();
+            });
+            // Ensure correct initial state
+            renumberEduBlocks();
+        }
+
+        // Branching logic helpers
+        function setWrapVisibility(wrapId, visible, requiredSelector) {
+            const wrap = document.getElementById(wrapId);
+            if (!wrap) return;
+            if (visible) {
+                wrap.classList.remove('hidden');
+            } else {
+                wrap.classList.add('hidden');
+            }
+            if (requiredSelector) {
+                const fields = wrap.querySelectorAll(requiredSelector);
+                fields.forEach(f => {
+                    if (visible) {
+                        f.setAttribute('required', '');
+                    } else {
+                        f.removeAttribute('required');
+                        if (f.type === 'radio' || f.type === 'checkbox') {
+                            f.checked = false;
+                        } else {
+                            f.value = '';
+                        }
+                    }
+                });
+            }
+        }
+
+        function applyVisaHistoryBranching() {
+            const section = document.getElementById('visa-history');
+            if (!section) return;
+            const j1Yes = section.querySelector('input[name="j1_status"][value="Yes"]')?.checked;
+            const j1No = section.querySelector('input[name="j1_status"][value="No"]')?.checked;
+
+            if (j1Yes) {
+                // Show Q: subject to 2-year?
+                setWrapVisibility('two_year_req_wrap', true, 'input[type="radio"][name="two_year_req"]');
+                // Based on that answer, show/hide Q: fulfilled?
+                const twoYearYes = section.querySelector('input[name="two_year_req"][value="Yes"]')?.checked;
+                const twoYearNo = section.querySelector('input[name="two_year_req"][value="No"]')?.checked;
+                if (twoYearYes) {
+                    setWrapVisibility('fulfilled_req_wrap', true, 'input[type="radio"][name="fulfilled_req"]');
+                } else if (twoYearNo) {
+                    setWrapVisibility('fulfilled_req_wrap', false, 'input[type="radio"][name="fulfilled_req"]');
+                } else {
+                    // Not chosen yet -> hide fulfilled until answered Yes
+                    setWrapVisibility('fulfilled_req_wrap', false, 'input[type="radio"][name="fulfilled_req"]');
+                }
+            } else if (j1No) {
+                // Hide both follow-ups
+                setWrapVisibility('two_year_req_wrap', false, 'input[type="radio"][name="two_year_req"]');
+                setWrapVisibility('fulfilled_req_wrap', false, 'input[type="radio"][name="fulfilled_req"]');
+            } else {
+                // Nothing chosen yet: hide both follow-ups
+                setWrapVisibility('two_year_req_wrap', false, 'input[type="radio"][name="two_year_req"]');
+                setWrapVisibility('fulfilled_req_wrap', false, 'input[type="radio"][name="fulfilled_req"]');
+            }
+        }
+
+        function applyOtherInfoBranching() {
+            const section = document.getElementById('other-info');
+            if (!section) return;
+            const arrestedYes = section.querySelector('input[name="arrested"][value="Yes"]')?.checked;
+            const wrapId = 'incident_explanation_wrap';
+            if (arrestedYes) {
+                setWrapVisibility(wrapId, true, '#incident_explanation');
+            } else {
+                setWrapVisibility(wrapId, false, '#incident_explanation');
+            }
+        }
+
+        function setupBranchingHandlers() {
+            // Visa history listeners
+            document.querySelectorAll('input[name="j1_status"]').forEach(r => {
+                r.addEventListener('change', applyVisaHistoryBranching);
+            });
+            document.querySelectorAll('input[name="two_year_req"]').forEach(r => {
+                r.addEventListener('change', applyVisaHistoryBranching);
+            });
+            document.querySelectorAll('input[name="fulfilled_req"]').forEach(r => {
+                r.addEventListener('change', applyVisaHistoryBranching);
+            });
+
+            // Other info listeners
+            document.querySelectorAll('input[name="arrested"]').forEach(r => {
+                r.addEventListener('change', applyOtherInfoBranching);
+            });
+        }
+
+        // USA State/City population
+        let US_CITIES = null;
+
+        function normalizeCitiesData(raw) {
+            // If already a mapping { State: [cities...] }
+            if (raw && !Array.isArray(raw) && typeof raw === 'object') {
+                // Heuristic: values should be arrays of strings
+                const keys = Object.keys(raw);
+                const looksLikeMapping = keys.length > 0 && Array.isArray(raw[keys[0]]);
+                if (looksLikeMapping) return raw;
+            }
+            // If it's an array of records, try to build mapping
+            if (Array.isArray(raw)) {
+                const mapping = {};
+                for (const rec of raw) {
+                    if (!rec || typeof rec !== 'object') continue;
+                    // Accept many header variations
+                    const state = rec.state || rec.State || rec.STATE || rec.state_name || rec.State_Name || rec.STATE_NAME || rec.stateCode || rec.STATE_CODE || rec["STATE NAME"];
+                    const city = rec.city || rec.City || rec.CITY || rec.place || rec.Place || rec.PLACE;
+                    const st = (state || '').toString().trim();
+                    const ct = (city || '').toString().trim();
+                    if (!st || !ct) continue;
+                    // If st is 2-letter code, try to map to full later on client? For now, keep as-is.
+                    if (!mapping[st]) mapping[st] = [];
+                    mapping[st].push(ct);
+                }
+                // Deduplicate and sort
+                Object.keys(mapping).forEach(k => {
+                    const set = new Set(mapping[k].filter(Boolean));
+                    mapping[k] = Array.from(set).sort((a,b)=>a.localeCompare(b));
+                });
+                return mapping;
+            }
+            // Fallback empty
+            return {};
+        }
+        const STATE_CODE_TO_NAME = {
+            AL:'Alabama', AK:'Alaska', AZ:'Arizona', AR:'Arkansas', CA:'California', CO:'Colorado', CT:'Connecticut', DE:'Delaware',
+            DC:'District of Columbia', FL:'Florida', GA:'Georgia', HI:'Hawaii', ID:'Idaho', IL:'Illinois', IN:'Indiana', IA:'Iowa',
+            KS:'Kansas', KY:'Kentucky', LA:'Louisiana', ME:'Maine', MD:'Maryland', MA:'Massachusetts', MI:'Michigan', MN:'Minnesota',
+            MS:'Mississippi', MO:'Missouri', MT:'Montana', NE:'Nebraska', NV:'Nevada', NH:'New Hampshire', NJ:'New Jersey', NM:'New Mexico',
+            NY:'New York', NC:'North Carolina', ND:'North Dakota', OH:'Ohio', OK:'Oklahoma', OR:'Oregon', PA:'Pennsylvania', RI:'Rhode Island',
+            SC:'South Carolina', SD:'South Dakota', TN:'Tennessee', TX:'Texas', UT:'Utah', VT:'Vermont', VA:'Virginia', WA:'Washington',
+            WV:'West Virginia', WI:'Wisconsin', WY:'Wyoming'
+        };
+        const FALLBACK_STATES = [
+            'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware',
+            'District of Columbia','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa',
+            'Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota',
+            'Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico',
+            'New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island',
+            'South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington',
+            'West Virginia','Wisconsin','Wyoming'
+        ];
+        async function loadUSCities() {
+            if (US_CITIES) return US_CITIES;
+            try {
+                const res = await fetch('/static/us_cities.json', { cache: 'reload' });
+                if (!res.ok) throw new Error('Failed to load /static/us_cities.json');
+                const raw = await res.json();
+                US_CITIES = normalizeCitiesData(raw);
+            } catch (e) {
+                console.error('Error loading city data:', e);
+                // Show a small hint in the UI under the state field
+                const stateSel = document.getElementById('usa_state');
+                if (stateSel && !document.getElementById('usa_state_err')) {
+                    const small = document.createElement('div');
+                    small.id = 'usa_state_err';
+                    small.className = 'text-sm text-red-600 mt-1';
+                    small.textContent = 'Unable to load states. Please refresh the page.';
+                    stateSel.parentElement.appendChild(small);
+                }
+                US_CITIES = {};
+            }
+            return US_CITIES;
+        }
+
+        async function populateStates() {
+            const stateSel = document.getElementById('usa_state');
+            if (!stateSel) return;
+            const data = await loadUSCities();
+            let keys = Object.keys(data);
+            // Build [{key, name}] using mapping for 2-letter codes
+            const entries = keys.map(k => {
+                const kk = String(k).trim();
+                const upper2 = kk.length === 2 ? kk.toUpperCase() : null;
+                const name = upper2 && STATE_CODE_TO_NAME[upper2] ? STATE_CODE_TO_NAME[upper2] : kk;
+                return { key: kk, name };
+            }).sort((a,b) => a.name.localeCompare(b.name));
+            entries.forEach(({key, name}) => {
+                const opt = document.createElement('option');
+                opt.value = key; // underlying key used to look up cities
+                opt.textContent = name; // friendly display name
+                stateSel.appendChild(opt);
+            });
+        }
+
+        function clearSelect(sel, placeholder) {
+            sel.innerHTML = '';
+            const p = document.createElement('option');
+            p.value = '';
+            p.textContent = placeholder;
+            sel.appendChild(p);
+        }
+
+        async function onStateChange() {
+            const stateSel = document.getElementById('usa_state');
+            const citySel = document.getElementById('usa_city');
+            if (!stateSel || !citySel) return;
+            clearSelect(citySel, 'Select city');
+            citySel.disabled = true;
+            const state = stateSel.value;
+            if (!state) return;
+            const data = await loadUSCities();
+            const cities = (data[state] || []).slice().sort();
+            cities.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                citySel.appendChild(opt);
+            });
+            citySel.disabled = cities.length === 0;
+        }
+
+        function setupUsaInputs() {
+            populateStates().then(() => onStateChange());
+            const stateSel = document.getElementById('usa_state');
+            stateSel?.addEventListener('change', onStateChange);
+            // Numeric-only filters
+            const zip = document.getElementById('usa_zip');
+            const phone = document.getElementById('usa_contact_number');
+            function digitsOnly(e) {
+                const before = e.target.value;
+                const after = before.replace(/\D+/g, '').slice(0, e.target.maxLength || undefined);
+                if (before !== after) e.target.value = after;
+            }
+            zip?.addEventListener('input', digitsOnly);
+            phone?.addEventListener('input', digitsOnly);
+        }
+
+        // Add autocomplete hints so the browser can autofill correctly
+        function setAutocompleteHints() {
+            const mapToken = (el) => {
+                const key = ((el.name || el.id || '').toLowerCase());
+                if (key.includes('email')) return 'email';
+                if (key.includes('phone') || key.includes('contact_number') || key.includes('tel')) return 'tel';
+                if (key.includes('first') && key.includes('name')) return 'given-name';
+                if ((key.includes('last') || key.includes('surname') || key.includes('family')) && key.includes('name')) return 'family-name';
+                if (key.includes('country') && !key.includes('birth')) return 'country';
+                if (key.includes('birth') && key.includes('country')) return 'country-name';
+                if (key.match(/addr(ess)?1/)) return 'address-line1';
+                if (key.match(/addr(ess)?2/)) return 'address-line2';
+                if (key.includes('city') || key.includes('town')) return 'address-level2';
+                if (key.includes('state') || key.includes('province')) return 'address-level1';
+                if (key.includes('zip') || key.includes('postal')) return 'postal-code';
+                if (key.includes('dob') || key.includes('date_of_birth') || key.includes('birth') && (el.type === 'date' || el.type === 'text')) return 'bday';
+                return null;
+            };
+            document.querySelectorAll('#visaForm input, #visaForm select, #visaForm textarea').forEach(el => {
+                if (el.hasAttribute('autocomplete')) return;
+                const token = mapToken(el);
+                if (token) el.setAttribute('autocomplete', token);
+            });
+        }
+
+        // Initialize the form
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStepIndicators('personal-info');
+            initWorkBlocks();
+            initEduBlocks();
+            setupBranchingHandlers();
+            applyVisaHistoryBranching();
+            applyOtherInfoBranching();
+            populateCountrySelects();
+            setupUsaInputs();
+            setAutocompleteHints();
+            // Hydrate immediately from server-rendered draft
+            if (DRAFT_FIELDS && Object.keys(DRAFT_FIELDS).length) {
+                hydrateFrom(DRAFT_FIELDS);
+                // Always fetch documents to render previously uploaded files
+                autosaveLoadDocs();
+            } else {
+                // Fallback: fetch fields and documents from server
+                autosaveLoad();
+            }
+            // Log user-filled information to the console
+            try {
+                console.log('[GCQ] Draft fields (server-injected):', DRAFT_FIELDS);
+                console.log('[GCQ] Current form values after hydration:', collectFields());
+            } catch(e) {}
+            const form = document.getElementById('visaForm');
+            if (!window.IS_LOCKED) {
+                form.addEventListener('input', autosavePostDebounced);
+                form.addEventListener('change', autosavePostDebounced);
+                // Safety net: periodic autosave every 5s while editing
+                setInterval(() => { autosavePostDebounced(); }, 5000);
+            }
+            if (!window.IS_LOCKED) {
+                bindPdfUploadValidation();
+            }
+            // If locked, disable all inputs/selects/textarea/buttons (except logout and Start New Application)
+            if (window.IS_LOCKED) {
+                try {
+                    const controls = form.querySelectorAll('input, select, textarea, button');
+                    controls.forEach(el => {
+                        // keep Logout (in header) and New Application clickable
+                        const isLogout = el.closest('a') && el.closest('a').textContent?.trim().toLowerCase() === 'logout';
+                        const isNewApp = el.type === 'submit' && el.closest('form') && el.closest('form').action.includes('/new_application');
+                        if (!isLogout && !isNewApp) {
+                            if (el.tagName !== 'A') el.disabled = true;
+                            el.classList.add('cursor-not-allowed');
+                        }
+                    });
+                } catch(e) {}
+            }
+            // Activate chip for first visible section and start watcher
+            highlightActiveChip('sponsoring-employer');
+            watchActiveSection();
+            // Flush autosave on tab hide/close and before unload unless suppressed (e.g., logout flow or locked)
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'hidden' && !window.__suppressAutosaveFlush && !window.IS_LOCKED) autosaveFlush();
+            });
+            window.addEventListener('beforeunload', () => {
+                if (!window.__suppressAutosaveFlush && !window.IS_LOCKED) autosaveFlush();
+            });
+            // Note: logout link uses inline onclick to ensure binding
+        });
+
+        const COUNTRY_LIST = [
+            "Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cabo Verde","Cambodia","Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo (Congo-Brazzaville)","Costa Rica","Côte d’Ivoire","Croatia","Cuba","Cyprus","Czechia","Democratic Republic of the Congo","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
+        ];
+
+        function populateCountrySelects() {
+            const ids = ['country_citizenship','country_birth','home_country','wb1_country'];
+            ids.forEach(id => {
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                // Preserve first placeholder option
+                COUNTRY_LIST.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    opt.textContent = name;
+                    sel.appendChild(opt);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

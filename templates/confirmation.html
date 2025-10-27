@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Application Submitted</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+    <div class="text-green-500 text-6xl mb-4">✓</div>
+    <h1 class="text-2xl font-bold text-gray-800 mb-2">Application Submitted Successfully!</h1>
+    <p class="text-gray-600 mb-6">Thank you for submitting your visa application. We'll review your information and get back to you soon.</p>
+    <div class="space-y-3">
+      <a href="/" class="block bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-200">Return to Home</a>
+      <a href="/submission/{{ submission_id }}" class="block bg-gray-800 hover:bg-black text-white font-semibold py-2 px-6 rounded-lg transition duration-200">View Submission</a>
+    </div>
+  </div>
+</body>
+</html>

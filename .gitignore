@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+
+# Local data and uploads (will be stored on Render persistent disk)
+uploads/
+data/
+drafts/
+auth.db
+
+# OS files
+.DS_Store
+Thumbs.db

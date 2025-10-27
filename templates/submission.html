@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Submission</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    @media print {
+      .no-print { display: none; }
+      body { background: #fff; }
+      .page { box-shadow: none; margin: 0; }
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">Visa Application Submission</h1>
+      <div class="no-print space-x-2">
+        <a href="{{ url_for('admin_dashboard') if current_user.role=='hr' else url_for('index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded">Home</a>
+        <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">Print</button>
+      </div>
+    </div>
+
+    <div class="page bg-white rounded-lg shadow p-6 space-y-8">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-700 mb-3">Submission Details</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div><span class="font-medium text-gray-600">Submission ID:</span> {{ record.id }}</div>
+          <div><span class="font-medium text-gray-600">Submitted At (UTC):</span> {{ record.meta.submitted_at }}</div>
+        </div>
+      </div>
+
+      {% set f = record.fields or {} %}
+      {% set d = record.documents or {} %}
+
+      <div>
+        <h2 class="text-xl font-semibold text-gray-700 mb-3">Personal Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-600">First Name</label>
+            <p class="text-gray-900">{{ f.get('first_name') or '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Last Name</label>
+            <p class="text-gray-900">{{ f.get('last_name') or '-' }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Other Name Used</label>
+            <p class="text-gray-900">{{ f.get('other_name') or '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Country of Citizenship</label>
+            <p class="text-gray-900">{{ f.get('country_citizenship') or '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Country of Birth</label>
+            <p class="text-gray-900">{{ f.get('country_birth') or '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Date of Birth</label>
+            <p class="text-gray-900">{{ f.get('date_of_birth') or '-' }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">All Citizenships</label>
+            <p class="text-gray-900 whitespace-pre-line">{{ f.get('citizenships_list') or '-' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-gray-700 mb-3">Contact (USA)</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Address Line 1</label>
+            <p class="text-gray-900">{{ f.get('usa_address1') or '-' }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Address Line 2</label>
+            <p class="text-gray-900">{{ f.get('usa_address2') or '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">State</label>
+            <p class="text-gray-900">{{ f.get('usa_state') or '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">City</label>
+            <p class="text-gray-900">{{ f.get('usa_city') or '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">ZIP</label>
+            <p class="text-gray-900">{{ f.get('usa_zip') or '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Contact Number</label>
+            <p class="text-gray-900">{{ f.get('usa_contact_number') or '-' }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Email Address</label>
+            <p class="text-gray-900">{{ f.get('usa_email') or '-' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-gray-700 mb-3">Contact (Outside USA)</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Address Line 1</label>
+            <p class="text-gray-900">{{ f.get('home_address1') or '-' }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Address Line 2</label>
+            <p class="text-gray-900">{{ f.get('home_address2') or '-' }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Country</label>
+            <p class="text-gray-900">{{ f.get('home_country') or '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">State</label>
+            <p class="text-gray-900">{{ f.get('home_state') or '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">City</label>
+            <p class="text-gray-900">{{ f.get('home_city') or '-' }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Zip/Postal Code</label>
+            <p class="text-gray-900">{{ f.get('home_zip') or '-' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-gray-700 mb-3">Sponsoring Employer</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-600">Employer</label>
+            <p class="text-gray-900">{{ f.get('sponsoring_employer') or '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Employer Address</label>
+            <p class="text-gray-900">{{ f.get('sponsoring_employer_address') or '-' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-gray-700 mb-3">Education</h2>
+        {% if edu_entries and edu_entries|length > 0 %}
+          <div class="space-y-3">
+            {% for e in edu_entries %}
+              <div class="border rounded p-3">
+                <div class="text-sm font-semibold text-gray-700 mb-2">Entry {{ e.index }}</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {% for label, value in e['items'] %}
+                    <div>
+                      <div class="text-xs text-gray-600">{{ label }}</div>
+                      <div class="text-gray-900">{{ value or '-' }}</div>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-gray-500">No education entries provided.</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-gray-700 mb-3">Work Experience</h2>
+        {% if wb_entries and wb_entries|length > 0 %}
+          <div class="space-y-3">
+            {% for e in wb_entries %}
+              <div class="border rounded p-3">
+                <div class="text-sm font-semibold text-gray-700 mb-2">Entry {{ e.index }}</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {% for label, value in e['items'] %}
+                    <div>
+                      <div class="text-xs text-gray-600">{{ label }}</div>
+                      <div class="text-gray-900">{{ value or '-' }}</div>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-gray-500">No work entries provided.</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-gray-700 mb-3">Visa History</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Current Immigration Status</label>
+            <p class="text-gray-900">{{ f.get('current_imm_status') or '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">I-94 Number</label>
+            <p class="text-gray-900">{{ f.get('i94_number') or '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Status Expiry Date</label>
+            <p class="text-gray-900">{{ f.get('status_expiry') or '-' }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Ever on J-1 Status?</label>
+            <p class="text-gray-900">{{ f.get('j1_status') or '-' }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Subject to 2-year Home Residency?</label>
+            <p class="text-gray-900">{{ f.get('two_year_req') or '-' }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Did you fulfill this requirement?</label>
+            <p class="text-gray-900">{{ f.get('fulfilled_req') or '-' }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Time spent in USA in H-1B status</label>
+            <p class="text-gray-900 whitespace-pre-line">{{ f.get('h1b_time') or '-' }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Have you ever applied for I-140?</label>
+            <p class="text-gray-900">{{ f.get('applied_i140') or '-' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-gray-700 mb-3">Other Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Arrested/Cited/Charged/etc.?</label>
+            <p class="text-gray-900">{{ f.get('arrested') or '-' }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm text-gray-600">Incident Explanation</label>
+            <p class="text-gray-900 whitespace-pre-line">{{ f.get('incident_explanation') or '-' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-gray-700 mb-3">Documents</h2>
+        <div class="space-y-3">
+          {% if d and d|length > 0 %}
+            {% for key, files in d.items() %}
+              {% if files and files|length > 0 %}
+              <div>
+                <span class="text-sm text-gray-600">{{ key }}:</span>
+                <ul class="list-disc ml-6">
+                  {% for file in files %}
+                    <li><a class="text-blue-600 hover:underline" href="{{ uploads_url_prefix }}/{{ file }}" target="_blank" rel="noopener">{{ file }}</a></li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            <p class="text-gray-500">No documents uploaded.</p>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

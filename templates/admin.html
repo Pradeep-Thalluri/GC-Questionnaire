@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HR Submissions Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+  <div class="container mx-auto px-4 py-8 max-w-5xl">
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-2xl font-bold text-gray-800">HR Submissions Dashboard</h1>
+      <div class="text-sm text-gray-600">
+        <span class="mr-3">Signed in as {{ current_user.name }}</span>
+        <a id="logoutLink" href="{{ url_for('logout') }}" class="text-blue-600 hover:underline">Logout</a>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="mb-4 flex gap-2">
+        <a href="{{ url_for('admin_dashboard', tab='under') }}" class="px-4 py-2 rounded border {{ 'bg-blue-600 text-white' if current_tab=='under' else 'bg-white text-blue-700 border-blue-600' }}">Under Process Cases</a>
+        <a href="{{ url_for('admin_dashboard', tab='completed') }}" class="px-4 py-2 rounded border {{ 'bg-blue-600 text-white' if current_tab=='completed' else 'bg-white text-blue-700 border-blue-600' }}">Completed Cases</a>
+      </div>
+
+      {% set listing = under_items if current_tab=='under' else completed_items %}
+      {% if listing and listing|length > 0 %}
+      <table class="min-w-full">
+        <thead>
+          <tr class="text-left text-sm text-gray-600 border-b">
+            <th class="py-2 pr-4">Case Number</th>
+            <th class="py-2 pr-4">Submission ID</th>
+            <th class="py-2 pr-4">Submitted At (UTC)</th>
+            <th class="py-2 pr-4">Status</th>
+            <th class="py-2 pr-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for it in listing %}
+          <tr class="border-b text-sm align-top">
+            <td class="py-2 pr-4 font-mono">{{ it.case_number or '-' }}</td>
+            <td class="py-2 pr-4 font-mono">{{ it.id }}</td>
+            <td class="py-2 pr-4">{{ it.submitted_at or '-' }}</td>
+            <td class="py-2 pr-4">
+              <form method="post" action="{{ url_for('admin_update_status', submission_id=it.id, tab=current_tab) }}" class="flex items-center gap-2">
+                <select name="status" class="border rounded px-2 py-1 text-sm">
+                  {% for s in allowed_statuses %}
+                    <option value="{{ s }}" {{ 'selected' if s==it.status else '' }}>{{ s }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1 px-3 rounded">Update</button>
+              </form>
+            </td>
+            <td class="py-2 pr-4 space-x-2">
+              <a class="text-blue-600 hover:underline" href="{{ url_for('view_submission', submission_id=it.id) }}" target="_blank">View Submission</a>
+              {% if pdf_enabled %}
+              <a class="text-blue-600 hover:underline" href="{{ url_for('submission_pdf', submission_id=it.id) }}" target="_blank">Questionnaire PDF</a>
+              {% endif %}
+              <a class="text-blue-600 hover:underline" href="{{ url_for('submission_documents_zip', submission_id=it.id) }}">Documents ZIP</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="text-gray-600">No items in this tab.</div>
+      {% endif %}
+    </div>
+  </div>
+  <script>
+    // Prompt on logout for consistency; admin typically doesn't need autosave
+    const logoutLink = document.getElementById('logoutLink');
+    if (logoutLink) {
+      logoutLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        const ok = window.confirm('Log out now? Any unsaved work will be lost.');
+        if (ok) window.location.href = logoutLink.href;
+      });
+    }
+  </script>
+</body>
+</html>

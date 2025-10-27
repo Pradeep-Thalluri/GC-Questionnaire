@@ -285,7 +285,11 @@ def register():
         login_user(user)
         flash('Registration successful.', 'success')
         return redirect(url_for('index'))
-    return render_template('login.html', mode='register')
+    return render_template('login.html', mode='register', show_hr=False)
+
+@app.route('/register_hr', methods=['GET'])
+def register_hr():
+    return render_template('login.html', mode='register', show_hr=True)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

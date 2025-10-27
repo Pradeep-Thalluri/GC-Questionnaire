@@ -317,6 +317,32 @@ def logout():
     flash('Logged out.', 'success')
     return redirect(url_for('login'))
 
+@app.route('/role', methods=['GET', 'POST'])
+@login_required
+def role():
+    if request.method == 'POST':
+        action = (request.form.get('action') or '').strip()
+        if action == 'to_hr':
+            code = (request.form.get('access_code') or '').strip()
+            if code and code == os.environ.get('HR_ACCESS_CODE', ''):
+                conn = get_db()
+                conn.execute('UPDATE users SET role = ? WHERE id = ?', ('hr', current_user.id))
+                conn.commit()
+                conn.close()
+                flash('Role updated to HR', 'success')
+                return redirect(url_for('admin_dashboard'))
+            else:
+                flash('Invalid HR access code', 'error')
+                return redirect(url_for('role'))
+        if action == 'to_user':
+            conn = get_db()
+            conn.execute('UPDATE users SET role = ? WHERE id = ?', ('applicant', current_user.id))
+            conn.commit()
+            conn.close()
+            flash('Role updated to User', 'success')
+            return redirect(url_for('index'))
+    return render_template('role.html', current_role=getattr(current_user, 'role', 'applicant'))
+
 @app.route('/logout_confirm')
 @login_required
 def logout_confirm():

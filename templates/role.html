@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Role Switch - Visa Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+  <div class="min-h-screen flex items-center justify-center px-4">
+    <div class="w-full max-w-md bg-white rounded-lg shadow p-8">
+      <h1 class="text-2xl font-bold text-gray-800 mb-1 text-center">Role Management</h1>
+      <p class="text-sm text-gray-500 mb-6 text-center">Current role: <span class="font-semibold">{{ current_role }}</span></p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="space-y-2 mb-4">
+          {% for category, message in messages %}
+            <div class="text-sm px-3 py-2 rounded {{ 'bg-red-50 text-red-700' if category=='error' else 'bg-green-50 text-green-700' }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% endwith %}
+
+      <div class="space-y-6">
+        <form method="POST" action="{{ url_for('role') }}" class="space-y-3">
+          <input type="hidden" name="action" value="to_hr" />
+          <div>
+            <label for="access_code" class="block text-sm font-medium text-gray-700">HR Access Code</label>
+            <input id="access_code" name="access_code" class="mt-1 block w-full rounded-md border-2 border-gray-300 focus:border-blue-500 focus:ring-blue-500" placeholder="Enter HR access code" />
+            <p class="text-xs text-gray-500 mt-1">Provide the secret HR code to switch to admin role.</p>
+          </div>
+          <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded" type="submit">Switch to Admin</button>
+        </form>
+
+        <form method="POST" action="{{ url_for('role') }}" class="space-y-3">
+          <input type="hidden" name="action" value="to_user" />
+          <button class="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 rounded" type="submit">Switch to User</button>
+        </form>
+      </div>
+
+      <p class="text-xs text-gray-400 mt-6 text-center">Use this page to change your role. Switching to Admin requires the correct HR code.</p>
+    </div>
+  </div>
+</body>
+</html>
